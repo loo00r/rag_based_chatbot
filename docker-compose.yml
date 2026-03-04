@@ -8,8 +8,9 @@ services:
     restart: always
     ports:
       - "8001:8001"
+    env_file: .env
     environment:
-      - HF_TOKEN=${HF_TOKEN}
+      - HF_TOKEN=${HF_TOKEN?Variable not set}
     command: >
       -m /models/Qwen3.5-9B-Q5_K_M.gguf
       --host 0.0.0.0
@@ -40,34 +41,47 @@ services:
 
   postgres:
     image: pgvector/pgvector:pg17
-    container_name: postgres
+    env_file: .env
     environment:
-      POSTGRES_USER: rag
-      POSTGRES_PASSWORD: rag
-      POSTGRES_DB: ragdb
-    ports:
-      - "5432:5432"
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_USER: ${POSTGRES_USER?Variable not set}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD?Variable not set}
+      POSTGRES_DB: ${POSTGRES_DB?Variable not set}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data/pgdata
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U rag -d ragdb"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+
+  ingest:
+    build: .
+    command: uv run python ingest.py
+    env_file: .env
+    environment:
+      - PG_CONN=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - LLM_BASE_URL=http://llama-cpp:8001/v1
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   app:
     build: .
-    container_name: app
     ports:
       - "8501:8501"
+    env_file: .env
     environment:
+      - PG_CONN=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - LLM_BASE_URL=http://llama-cpp:8001/v1
-      - PG_CONN=postgresql://rag:rag@postgres:5432/ragdb
     depends_on:
       llama-cpp:
         condition: service_healthy
       postgres:
         condition: service_healthy
+      ingest:
+        condition: service_completed_successfully
     restart: on-failure
 
 volumes:

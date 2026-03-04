@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_ignore_empty=True, extra="ignore")
 
-    LLM_BASE_URL: str = "http://localhost:8001/v1"
+    LLM_BASE_URL: str
     HF_TOKEN: str
 
     POSTGRES_USER: str

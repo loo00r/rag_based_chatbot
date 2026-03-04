@@ -59,12 +59,11 @@ services:
   ingest:
     build: .
     command: uv run python app/ingest.py
+    env_file:
+      - .env
     environment:
       - PYTHONPATH=/project/app
       - POSTGRES_HOST=postgres
-      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
-      - POSTGRES_DB=${POSTGRES_DB?Variable not set}
     depends_on:
       postgres:
         condition: service_healthy
@@ -73,12 +72,11 @@ services:
     build: .
     ports:
       - "8501:8501"
+    env_file:
+      - .env
     environment:
       - PYTHONPATH=/project/app
       - POSTGRES_HOST=postgres
-      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
-      - POSTGRES_DB=${POSTGRES_DB?Variable not set}
       - LLM_BASE_URL=http://llama-cpp:8001/v1
     depends_on:
       llama-cpp:

@@ -21,12 +21,7 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
-PG_CONN = f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
-LLM_BASE_URL = settings.LLM_BASE_URL
-HF_TOKEN = settings.HF_TOKEN
-EMBED_MODEL = settings.EMBED_MODEL
-COLLECTION = settings.COLLECTION
-TOP_K = settings.TOP_K
-CHUNK_SIZE = settings.CHUNK_SIZE
-CHUNK_OVERLAP = settings.CHUNK_OVERLAP
+PG_CONN = (
+    f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}"
+    f"@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
+)

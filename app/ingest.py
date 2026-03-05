@@ -5,7 +5,7 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_postgres import PGVector
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from core.config import PG_CONN, EMBED_MODEL, COLLECTION, CHUNK_SIZE, CHUNK_OVERLAP
+from core.config import settings, PG_CONN
 
 URL = "https://zakon.rada.gov.ua/laws/show/1306-2001-п/print"
 RULE_RE = re.compile(r"^(\d+\.\d+(?:\.\d+)*)\.")
@@ -23,7 +23,7 @@ def is_section(text: str) -> bool:
 def parse_docs(html: str) -> list[Document]:
     soup = BeautifulSoup(html, "html.parser")
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP, separators=["\n\n", "\n", " ", ""]
+        chunk_size=settings.CHUNK_SIZE, chunk_overlap=settings.CHUNK_OVERLAP, separators=["\n\n", "\n", " ", ""]
     )
     docs = []
     current_section = "ПДР"
@@ -34,7 +34,7 @@ def parse_docs(html: str) -> list[Document]:
         if not (current_rule_id and current_lines):
             return
         content = f"{current_section}\n{' '.join(current_lines)}"
-        if len(content) > CHUNK_SIZE * 2:
+        if len(content) > settings.CHUNK_SIZE * 2:
             for i, chunk in enumerate(splitter.split_text(content)):
                 docs.append(Document(
                     page_content=chunk,
@@ -77,9 +77,9 @@ if __name__ == "__main__":
     docs = parse_docs(html)
     print(f"Parsed {len(docs)} chunks")
 
-    embeddings = HuggingFaceEmbeddings(model_name=EMBED_MODEL)
-    store = PGVector(embeddings=embeddings, collection_name=COLLECTION, connection=PG_CONN)
+    embeddings = HuggingFaceEmbeddings(model_name=settings.EMBED_MODEL)
+    store = PGVector(embeddings=embeddings, collection_name=settings.COLLECTION, connection=PG_CONN)
     store.delete_collection()
     store.create_collection()
     store.add_documents(docs)
-    print(f"Ingested {len(docs)} chunks into '{COLLECTION}'")
+    print(f"Ingested {len(docs)} chunks into '{settings.COLLECTION}'")

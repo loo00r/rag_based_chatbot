@@ -3,11 +3,11 @@ from langchain_openai import ChatOpenAI
 from langchain_postgres import PGVector
 from langgraph.graph import StateGraph, END
 from typing import TypedDict
-from core.config import PG_CONN, EMBED_MODEL, COLLECTION, TOP_K, LLM_BASE_URL
+from core.config import settings, PG_CONN
 
-_embeddings = HuggingFaceEmbeddings(model_name=EMBED_MODEL)
-_store = PGVector(embeddings=_embeddings, collection_name=COLLECTION, connection=PG_CONN)
-_llm = ChatOpenAI(base_url=LLM_BASE_URL, api_key="none", model="qwen", temperature=0)
+_embeddings = HuggingFaceEmbeddings(model_name=settings.EMBED_MODEL)
+_store = PGVector(embeddings=_embeddings, collection_name=settings.COLLECTION, connection=PG_CONN)
+_llm = ChatOpenAI(base_url=settings.LLM_BASE_URL, api_key="none", model="qwen", temperature=0)
 
 
 class RAGState(TypedDict):
@@ -17,7 +17,7 @@ class RAGState(TypedDict):
 
 
 def retrieve(state: RAGState) -> dict:
-    results = _store.similarity_search(state["query"], k=TOP_K)
+    results = _store.similarity_search(state["query"], k=settings.TOP_K)
     return {"docs": [f"[{d.metadata.get('rule_id','')}] {d.page_content}" for d in results]}
 
 

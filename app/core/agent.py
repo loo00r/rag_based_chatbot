@@ -3,10 +3,10 @@ from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, END
 from typing import TypedDict
 from duckduckgo_search import DDGS
-from core.config import LLM_BASE_URL
+from core.config import settings
 from core.rag import rag_graph
 
-_llm = ChatOpenAI(base_url=LLM_BASE_URL, api_key="none", model="qwen", temperature=0)
+_llm = ChatOpenAI(base_url=settings.LLM_BASE_URL, api_key="none", model="qwen", temperature=0)
 
 
 class State(TypedDict):

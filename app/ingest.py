@@ -13,10 +13,10 @@ RULE_RE = re.compile(r"^(\d+\.\d+(?:\.\d+)*)\.")
 
 def is_section(text: str) -> bool:
     # "7. ПРІОРИТЕТ..." — число + крапка + пробіл + текст у верхньому регістрі
-    m = re.match(r"^\d+\.\s+(.+)$", text)
-    if not m:
+    match = re.match(r"^\d+\.\s+(.+)$", text)
+    if not match:
         return False
-    body = m.group(1).replace("'", "").replace("'", "").replace(" ", "").replace("-", "")
+    body = match.group(1).replace("'", "").replace("'", "").replace(" ", "").replace("-", "")
     return len(body) > 2 and body.isupper()
 
 
@@ -58,10 +58,10 @@ def parse_docs(html: str) -> list[Document]:
             current_lines = []
             continue
 
-        m = RULE_RE.match(text)
-        if m:
+        rule_match = RULE_RE.match(text)
+        if rule_match:
             flush()
-            current_rule_id = m.group(1)
+            current_rule_id = rule_match.group(1)
             current_lines = [text]
         elif current_rule_id:
             current_lines.append(text)

@@ -1,13 +1,65 @@
 from core.agent import graph
 
 EVAL_SET = [
-    # (question, expected_keywords)
-    # TODO: fill 15 Q&A pairs
+    # (category, question, expected_keywords)
+    # --- calculation ---
+    ("calculation", "Який гальмівний шлях при швидкості 90 км/г?",
+     ["81", "гальмівний", "шлях"]),
+    ("calculation", "Яка безпечна дистанція при русі 60 км/г в місті?",
+     ["30", "дистанція"]),
+    ("calculation", "На якій відстані потрібно зупинитись якщо їду 120 км/г?",
+     ["144", "гальмівний", "шлях"]),
+    # --- simple ---
+    ("simple", "Що означає дорожня розмітка 1.5?",
+     ["розмітка", "смуга", "1.5"]),
+    ("simple", "На якій відстані від пішохідного переходу заборонена зупинка?",
+     ["10", "зупин"]),
+    ("simple", "Яка мінімальна відстань між транспортними засобами при буксируванні?",
+     ["буксир", "відстань"]),
+    ("simple", "Хто має перевагу на нерегульованому перехресті рівнозначних доріг?",
+     ["праворуч", "перевага", "перехрест"]),
+    ("simple", "З якою швидкістю можна рухатись у населеному пункті?",
+     ["50", "населен", "швидкість"]),
+    # --- complex ---
+    ("complex", "Порівняй правила зупинки та стоянки в населеному пункті",
+     ["зупинк", "стоянк", "населен"]),
+    ("complex", "В яких випадках можна виїжджати на зустрічну смугу на двосмуговій дорозі?",
+     ["зустрічн", "смуг", "обгін"]),
+    ("complex", "Які правила проїзду перехрестя зі світлофором і знаком одночасно?",
+     ["світлофор", "знак", "перехрест"]),
+    ("complex", "Які вимоги до буксирування: швидкість, відстань, позначення?",
+     ["буксир", "швидкість", "відстань"]),
+    ("complex", "Коли пішохід має перевагу, а коли — транспортний засіб?",
+     ["пішохід", "перевага", "перехрест"]),
+    # --- out_of_scope ---
+    ("out_of_scope", "Який штраф за проїзд на червоне світло?",
+     ["штраф", "грн", "червон"]),
+    ("out_of_scope", "Як отримати міжнародне водійське посвідчення?",
+     ["міжнародн", "посвідчення", "водійськ"]),
 ]
 
 if __name__ == "__main__":
-    for question, keywords in EVAL_SET:
-        result = graph.invoke({"query": question, "sub_queries": [], "rag_answers": [],
-                               "web_results": [], "final_answer": "", "iterations": 0})
-        hit = any(kw.lower() in result["final_answer"].lower() for kw in keywords)
-        print(f"{'✓' if hit else '✗'} {question[:60]}")
+    counts = {}
+    total_hit = 0
+
+    for category, question, keywords in EVAL_SET:
+        result = graph.invoke({
+            "query": question, "classification": "", "sub_queries": [],
+            "rag_answers": [], "web_results": [], "final_answer": "", "iterations": 0,
+        })
+        answer = result["final_answer"].lower()
+        hit = any(kw.lower() in answer for kw in keywords)
+        total_hit += hit
+        counts.setdefault(category, [0, 0])
+        counts[category][0] += hit
+        counts[category][1] += 1
+        print(f"{'✓' if hit else '✗'} [{category}] {question[:60]}")
+
+    print(f"\n{'─'*60}")
+    print(f"{'Category':<15} {'✓':>4} {'n':>4} {'Hit%':>6}")
+    print(f"{'─'*60}")
+    for cat, (hits, n) in counts.items():
+        print(f"{cat:<15} {hits:>4} {n:>4} {hits/n*100:>5.0f}%")
+    print(f"{'─'*60}")
+    n = len(EVAL_SET)
+    print(f"{'Total':<15} {total_hit:>4} {n:>4} {total_hit/n*100:>5.0f}%")

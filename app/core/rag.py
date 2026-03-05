@@ -7,7 +7,7 @@ from core.config import settings, PG_CONN
 
 _embeddings = HuggingFaceEmbeddings(model_name=settings.EMBED_MODEL)
 _store = PGVector(embeddings=_embeddings, collection_name=settings.COLLECTION, connection=PG_CONN)
-_llm = ChatOpenAI(base_url=settings.LLM_BASE_URL, api_key="none", model="qwen", temperature=0)
+_llm = ChatOpenAI(base_url=settings.LLM_BASE_URL, api_key="none", model="qwen", temperature=0, max_tokens=512)
 
 
 class RAGState(TypedDict):

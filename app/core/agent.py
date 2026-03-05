@@ -6,7 +6,8 @@ from duckduckgo_search import DDGS
 from core.config import settings
 from core.rag import rag_graph
 
-_llm = ChatOpenAI(base_url=settings.LLM_BASE_URL, api_key="none", model="qwen", temperature=0)
+_llm = ChatOpenAI(base_url=settings.LLM_BASE_URL, api_key="none", model="qwen", temperature=0, max_tokens=512)
+_llm_fast = ChatOpenAI(base_url=settings.LLM_BASE_URL, api_key="none", model="qwen", temperature=0, max_tokens=64)
 
 
 class State(TypedDict):
@@ -60,7 +61,7 @@ def classify(state: State) -> dict:
         "- out_of_scope: штрафи, КУпАП, поза ПДР\n\n"
         f"Запит: {state['query']}\n\nВідповідь:"
     )
-    label = _llm.invoke(prompt).content.strip().lower().split()[0]
+    label = _llm_fast.invoke(prompt).content.strip().lower().split()[0]
     if label not in ("simple", "complex", "calculation", "out_of_scope"):
         label = "simple"
     return {"classification": label}

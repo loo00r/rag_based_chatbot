@@ -1,31 +1,27 @@
-import asyncio
 import time
-import statistics
 from core.agent import graph
 
 QUERIES = [
-    "What is LangGraph?",
-    "How does RAG work?",
-    # TODO: expand to 100 queries
-] * 50
-
-
-async def run_query(q: str) -> float:
-    t = time.perf_counter()
-    await asyncio.to_thread(
-        graph.invoke,
-        {"query": q, "sub_queries": [], "rag_answers": [], "web_results": [], "final_answer": "", "iterations": 0}
-    )
-    return time.perf_counter() - t
-
-
-async def main():
-    times = await asyncio.gather(*[run_query(q) for q in QUERIES])
-    s = sorted(times)
-    n = len(s)
-    print(f"n={n}  p50={s[n//2]:.1f}s  p95={s[int(n*.95)]:.1f}s  p99={s[int(n*.99)]:.1f}s")
-    print(f"throughput={n/sum(times)*n:.2f} req/s")
-
+    "Що означає розмітка 1.5?",                              # simple
+    "Правила зупинки в місті?",                              # simple
+    "Яка максимальна швидкість у населеному пункті?",        # simple
+    "Хто має перевагу на нерегульованому перехресті?",       # simple
+    "Який гальмівний шлях при швидкості 90 км/г?",          # calculation
+] * 20  # 100 total
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    times = []
+    for i, q in enumerate(QUERIES, 1):
+        t0 = time.perf_counter()
+        graph.invoke({
+            "query": q, "classification": "", "sub_queries": [],
+            "rag_answers": [], "web_results": [], "final_answer": "", "iterations": 0,
+        })
+        elapsed = time.perf_counter() - t0
+        times.append(elapsed)
+        print(f"[{i:3}/{len(QUERIES)}] {elapsed:.1f}s — {q[:50]}", flush=True)
+
+    s = sorted(times)
+    n = len(s)
+    print(f"\nn={n}  p50={s[n//2]:.1f}s  p95={s[int(n*.95)]:.1f}s  p99={s[int(n*.99)]:.1f}s")
+    print(f"avg={sum(times)/n:.1f}s  min={s[0]:.1f}s  max={s[-1]:.1f}s")

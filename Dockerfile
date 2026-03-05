@@ -1,14 +1,26 @@
 FROM python:3.12-slim
 
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+ENV PYTHONUNBUFFERED=1 \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    PATH="/project/.venv/bin:$PATH" \
+    PYTHONPATH=/project/app
+
 WORKDIR /project
 
-RUN pip install uv
+# Layer 1: deps only — cached until pyproject.toml / uv.lock change
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --frozen --no-install-project --no-dev
 
-COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-dev
+COPY . .
 
-COPY app/ app/
+# Layer 2: install project itself (fast — deps already cached)
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
 
 EXPOSE 8501
-
-CMD ["uv", "run", "streamlit", "run", "app/main.py", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "app/main.py", "--server.port=8501", "--server.address=0.0.0.0"]

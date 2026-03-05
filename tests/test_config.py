@@ -1,4 +1,4 @@
-from core.config import LLM_BASE_URL, PG_CONN, HF_TOKEN, EMBED_MODEL, COLLECTION, TOP_K, CHUNK_SIZE, CHUNK_OVERLAP
+from core.config import settings, PG_CONN
 
 
 def test_pg_conn_built_from_parts():
@@ -7,28 +7,27 @@ def test_pg_conn_built_from_parts():
     assert "@" in PG_CONN
 
 
-def test_pg_conn_no_hardcoded_credentials():
-    # connection string must be assembled, not a literal default
+def test_pg_conn_starts_with_scheme():
     assert PG_CONN.startswith("postgresql://")
 
 
 def test_llm_base_url():
-    assert LLM_BASE_URL.startswith("http")
-    assert "/v1" in LLM_BASE_URL
+    assert settings.LLM_BASE_URL.startswith("http")
+    assert "/v1" in settings.LLM_BASE_URL
 
 
 def test_types():
-    assert isinstance(TOP_K, int)
-    assert isinstance(CHUNK_SIZE, int)
-    assert isinstance(CHUNK_OVERLAP, int)
-    assert isinstance(EMBED_MODEL, str)
-    assert isinstance(COLLECTION, str)
-    assert isinstance(HF_TOKEN, str)
+    assert isinstance(settings.TOP_K, int)
+    assert isinstance(settings.CHUNK_SIZE, int)
+    assert isinstance(settings.CHUNK_OVERLAP, int)
+    assert isinstance(settings.EMBED_MODEL, str)
+    assert isinstance(settings.COLLECTION, str)
+    assert isinstance(settings.HF_TOKEN, str)
 
 
 def test_chunk_overlap_less_than_chunk_size():
-    assert CHUNK_OVERLAP < CHUNK_SIZE
+    assert settings.CHUNK_OVERLAP < settings.CHUNK_SIZE
 
 
 def test_top_k_positive():
-    assert TOP_K > 0
+    assert settings.TOP_K > 0

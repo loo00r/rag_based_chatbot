@@ -1,3 +1,4 @@
+from unittest.mock import MagicMock, patch
 from langgraph.graph import END
 from core.agent import (
     graph, classify, decompose, rag_node, web_search, synthesize,
@@ -5,7 +6,7 @@ from core.agent import (
 )
 
 BASE: dict = {
-    "query": "тест", "sub_queries": [], "rag_answers": [],
+    "query": "тест", "classification": "", "sub_queries": [], "rag_answers": [],
     "web_results": [], "final_answer": "", "iterations": 0,
 }
 VALID_NODES = {"classify", "decompose", "rag_node", "web_search", "synthesize", "calculator_node"}
@@ -38,7 +39,10 @@ def test_rag_node_has_rag_answers():
 
 
 def test_web_search_has_web_results():
-    result = web_search(BASE)
+    mock_result = [{"body": "Штраф за перевищення швидкості"}]
+    with patch("core.agent.DDGS") as mock_ddgs:
+        mock_ddgs.return_value.__enter__.return_value.text.return_value = mock_result
+        result = web_search(BASE)
     assert "web_results" in result
     assert isinstance(result["web_results"], list)
 

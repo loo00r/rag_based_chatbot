@@ -24,7 +24,7 @@ def retrieve(state: RAGState) -> dict:
 def generate(state: RAGState) -> dict:
     context = "\n\n".join(state["docs"])
     prompt = (
-        f"Ти асистент з ПДР України. Відповідай українською, посилайся на конкретні пункти.\n\n"
+        f"Ти асистент з ПДР України. Відповідай українською, посилайся на конкретні пункти. Відповідь — до 150 слів.\n\n"
         f"Контекст:\n{context}\n\nПитання: {state['query']}"
     )
     resp = _llm.invoke(prompt)

@@ -27,5 +27,10 @@ if query := st.chat_input("Запитайте про правила дорожн
     st.session_state.messages.append({"role": "assistant", "content": result["final_answer"]})
     st.chat_message("assistant").write(result["final_answer"])
 
-    with st.expander("Які пункти знайдено"):
-        st.json({"rag_answers": result["rag_answers"], "web_results": result["web_results"]})
+    with st.expander("Деталі роботи агента"):
+        st.json({
+            "classification": result["classification"],
+            "sub_queries": result["sub_queries"],
+            "rag_answers": result["rag_answers"],
+            "web_results": result["web_results"],
+        })
